@@ -8,9 +8,9 @@
 #                                      imaging mass spectrometry"        
 #
 #   Authors     :       V. Vutov and T. Dickhaus                                                                
-#   Date        :       25.04.2022
+#   Date        :       03.05.2022
 #   Purpose     :       Approximating the FDP(t) and
-#                       identifying the most assoc. m/z for cancer association
+#                       identifying the most assoc. m/z values for the cancer association
 #
 #		Source data : https://gitlab.informatik.uni-bremen.de/digipath/Supervised_NMF_Methods_for_MALDI.git. -
 #                 Matlab file: (L1-8 tic-redc-spdn-adrs.mat)		
@@ -37,11 +37,8 @@
 ################################################################################
   
   rm(list = ls())
-  
-  
-###############################################################################
+
 ### Check for missing packages and install them
-###############################################################################
 
   list.of.packages <- c("ggplot2", "lqr", 'gridExtra')
   
@@ -58,8 +55,12 @@
   library(quantreg)
   library(ggplot2)
   require(gridExtra)
+
+  file_url <- "https://github.com/fisherynwa/logit_pfa/blob/main/data/task_adc_sqcc.RData?raw=true"
   
-  load('data/task_ad_sq.RData')
+  load(url(file_url))
+  
+  
   source('codes/MainFunctions.R')
   source('codes/pfa_custom.R')
   
@@ -76,7 +77,7 @@
   
 ######################################################
 ## Efron Empirical Correction, for more computation details, see
-## 'source('codes/Ahat-Efron.R')' and the mentioned references in the paper
+## 'source('codes/Ahat-Efron.R')' and the mentioned references in the manuscript.
 # We have saved the genuine Z-values - save(genuine_z_values, file='./results/z_values.rda')
 ######################################################
   
@@ -138,11 +139,17 @@
   
   sqcc_table_9 <- ass_mz[c(pfa_z_SqCC$ix[1:20]),]
   
+  sqcc_table_9$pval = format(2 * (1 - pnorm(abs(sqcc_table_9$z_val))), 
+                             scientific = TRUE, digits = 3)
+  
   adc_table_9 <- ass_mz[c(pfa_z_ADC$ix[1:20]),]
+    
+  adc_table_9$pval <- format(2 * (1 - pnorm(abs(adc_table_9$z_val))),
+                             scientific = TRUE, digits = 3)
     
   table_9 <- cbind(sqcc_table_9, adc_table_9)
   
-  colnames(table_9) <- c(rep(c("m/z values", "Z-scores"), 2))
+  colnames(table_9) <- c(rep(c("m/z values", "Z-scores", "P-values"), 2))
    
   print(xtable(table_9, type = "latex"), file = "./results/Table9.tex",
         include.rownames = FALSE)
@@ -151,13 +158,13 @@
 ## Figure 1 - two examples of mass spectra ##
 ############################################
   
-  pdf(file = 'results/Fig1.pdf')
+  pdf(file = './results/Fig1.pdf')
   
   par(mfrow = c(1, 2))
-  plot(x  = mz_vector, y = X[2050,], type = 'l', col = 'blue', 
+  plot(x  = mz_vector, y = data.tic[2050,], type = 'l', col = 'blue', 
        ylab = 'Intensity', xlab = 'm/z values')
   
-  plot(x  = mz_vector, y = X[520,], type = 'l', col = 'blue', 
+  plot(x  = mz_vector, y = data.tic[520,], type = 'l', col = 'blue', 
       ylab = 'Intensity', xlab = 'm/z values')
   
   dev.off()
@@ -298,7 +305,6 @@
   dev.off()
   
   
-
-  
+ 
   
   
